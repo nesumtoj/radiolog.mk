@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          Role
+  verified      Boolean  @default(false)
+  consultations Consultation[] @relation("UserConsultations")
+  reviews       Review[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Radiologist {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  bio           String?
+  pricing       Json
+  verified      Boolean  @default(false)
+  consultations Consultation[] @relation("RadiologistConsultations")
+  reviews       Review[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Consultation {
+  id             String   @id @default(uuid())
+  user           User     @relation("UserConsultations", fields: [userId], references: [id])
+  userId         String
+  radiologist    Radiologist @relation("RadiologistConsultations", fields: [radiologistId], references: [id])
+  radiologistId  String
+  question       String
+  scanUrl        String
+  status         String
+  reportText     String?
+  reportFileUrl  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int
+  comment     String?
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  radiologist Radiologist @relation(fields: [radiologistId], references: [id])
+  radiologistId String
+  createdAt   DateTime @default(now())
+}
+
+enum Role {
+  USER
+  RADIOLOGIST
+  ADMIN
+}
